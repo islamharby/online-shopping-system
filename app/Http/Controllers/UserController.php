@@ -2,14 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Auth;
-use Validator;
 use App\User;
+use Auth;
 use Hash;
+use Illuminate\Http\Request;
+use Validator;
 
 class UserController extends Controller
 {
+    public function view_login()
+    {
+        return view('auth.login');
+    }
+    public function view_register()
+    {
+        return view('auth.register');
+    }
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -22,10 +30,10 @@ class UserController extends Controller
             'date_month' => 'required|string',
             'date_year' => 'required|string',
             'cvc' => 'required|numeric',
-            ]);
+        ]);
 
         if ($validator->fails()) {
-            return  response()->json(['message' => $validator->errors()->all()]);
+            return response()->json(['message' => $validator->errors()->all()]);
         }
         $user = new User();
         $user->user_name = $request->user_name;
@@ -47,30 +55,36 @@ class UserController extends Controller
      */
     public function login(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $v = Validator::make(request()->all(), [
             'email' => 'required|email',
             'password' => 'required',
         ]);
-
-        if ($validator->fails()) {
-            return  response()->json(['message' => $validator->errors()->all()]);
+        if ($v->fails()) {
+            session()->flash('errors', $v->messages()->toArray());
+            return back();
         }
 
-        $credentials = request(['email', 'password']);
+        $email = $request->email;
+        $password = $request->password;
 
-        if (Auth::attempt($credentials)) {
-            if (Auth::user()->role = 'admin') {
-                return response()->json(['user' => '1', 'data' => Auth::user()]);
+        if (Auth::attempt(['email' => $email, 'password' => $password])) {
+            // return Auth::user()->role;
+            if (Auth::user()->role == 'admin') {
+                // return 12;
+                return redirect('/dashboard');
+            } elseif (Auth::user()->role == 'user') {
+                return redirect('/home');
+            } else {
+                return back();
             }
+        } else {
+            return back();
         }
-
-        return response()->json(['user' => '2', 'data' => Auth::user()]);
     }
 
     public function logout()
     {
         Auth::logout();
-
-        return response()->json(['message' => 'done']);
+        return redirect('/');
     }
 }

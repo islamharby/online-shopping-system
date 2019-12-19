@@ -10,14 +10,23 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
-
-Route::get('/', function () {
-    return view('welcome');
+Route::group([ 'middleware' => ['guest'] ],function()
+{
+    Route::get('/','HomeController@view_welcome');
+    Route::get('login','UserController@view_login')->name('login');
+    Route::get('register', 'UserController@view_register'); 
 });
 
-Route::get('/dashboard', function () {
-    return view('admin.dashboard');
+Route::group([ 'middleware' => ['role:admin']],function()
+{
+    Route::get('/dashboard', 'HomeController@view_dashboard');
+    Route::get('/Item/add', 'ItemController@view_add');
+    Route::get('/Item/edit/{i}', 'ItemController@view_edit');    
 });
-Route::get('/home', function () {
-    return view('user.home');
+Route::group([ 'middleware' => ['role:user']],function()
+{
+    Route::get('/home','HomeController@view_home');
+    Route::get('/history', 'HomeController@view_history');
+    // Route::get('/purchases', 'HomeController@view_purchases');
+    Route::post('logout', 'UserController@logout');
 });

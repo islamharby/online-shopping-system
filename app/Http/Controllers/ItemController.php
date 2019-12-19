@@ -8,6 +8,15 @@ use App\Item;
 
 class ItemController extends Controller
 {
+    public function view_add() 
+    {
+        return view('admin.item.add');
+    } 
+    public function view_edit($i) 
+    {
+        $item = Item::where('id',$i)->first();
+        return view('admin.item.edit')->withItem($item);
+    }
     public function add(Request $request)
     {
         $validator = Validator::make($request->all(), [

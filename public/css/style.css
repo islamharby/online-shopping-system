@@ -1,3 +1,36 @@
 body {
-	background: #efefef;
+    background: #efefef;
+}
+
+.welcome-page-top {
+    margin: 21% 0px 4px 38%;
+}
+
+.welcome-page-down {
+    margin: 0% 0% 0% 44%;
+}
+
+.login {
+    margin-right: 11px;
+}
+
+.form-login {
+    margin: 0% 0% 0% 21%;
+    border: 1px solid #ccc;
+    padding: 17px;
+    background: #ffffff;
+    color: #000;
+    font-style: oblique;
+}
+
+.form-group .validationMsg {
+    display: block;
+    /* position: absolute; */
+    width: 100%;
+    bottom: 0;
+    left: 40px;
+    font-size: 10px;
+    font-weight: 500;
+    margin: 0;
+    padding: 5px;
 }
