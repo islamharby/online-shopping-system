@@ -4,9 +4,19 @@
 <form action="" class="col-12">
     {{csrf_field()}}
     <div class="row">
-        <div class="row" style="margin-top: 11px;">
-            <a href="/Item/add"  class="btn btn-info"> Add </a>
+        <div class="row" style="margin: 11px;">
+            <a href="/Item/create"  class="btn btn-info"> Add </a>
         </div>
+        @if(session()->exists('error'))
+            <div class="col-12 alert alert-danger">
+                {{ session()->get('error') }}
+            </div>
+        @endif
+        @if(session()->exists('success'))
+            <div class=" col-12 alert alert-success">
+                {{ session()->get('success') }}
+            </div>    
+        @endif
         <table class="table">
             <thead>
                 <tr>
@@ -25,7 +35,7 @@
                             <a href="/Item/edit/{{$item->id}}" class="btn btn-info">
                                 <span>Edit</span>
                             </a>
-                            <a href="/Item/edit/{{$item->id}}"  class="btn btn-danger">
+                            <a href="/Item/delete/{{$item->id}}"  class="btn btn-danger">
                                 <span>Delete</span>
                             </a>
                         </div>
@@ -36,4 +46,7 @@
         </table>
     </div>
 </form>
+@endsection
+@section('scripts')
+<script src="{{asset('js/admin/admin.js')}}"></script>
 @endsection

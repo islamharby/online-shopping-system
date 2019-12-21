@@ -34,3 +34,43 @@ body {
     margin: 0;
     padding: 5px;
 }
+
+.error {
+    color: red;
+}
+
+#purchases-error {
+    color: red;
+    position: absolute;
+}
+
+.form_title {
+    margin: 10px;
+    text-align: center;
+}
+
+.form_back {
+    margin: 10px;
+    float: left;
+}
+
+#cvc {
+    margin-top: 22px;
+}
+
+.cvc_div {
+    margin: -6rem 0rem 2rem 12rem;
+}
+
+.date_year {
+    margin: -10% 0% 0% 8%;
+}
+
+#delete_item_dashboard {
+    margin-top: -9%;
+    margin-left: 13%;
+}
+
+.bill_title {
+    margin-right: 8px;
+}

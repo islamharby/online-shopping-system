@@ -1,39 +1,30 @@
 @extends('layouts.master')
 
 @section('content')
-<div class="row">
-    <a href="/register" class="btn btn-primary" style="margin: 7% 6% 2% 14%;">Register</a>
-</div>
-<div class="row form-login col-6">
-    <form class="col-12" method="POST" action="/api/login">
-    {{csrf_field()}}
-        <div class="row">
-        <div class="col-12">
-            @if(session()->exists('errors'))
-            <div class="alert alert-danger">
-                @foreach(session()->get('errors', []) as $k => $v)
-                    @foreach($v as $x => $y)
-                    <p>{{ $k }} : {{ $y }}</p>
-                    @endforeach
-                @endforeach
-            </div>    
-            @endif
-            <div class="form-group col-9 ">
-            <label  for="email">Email</label>
-                <input type="text" class="form-control email" name="email" id="email" required>
-                <span class="validationMsg"></span>
 
-            </div>
-            <div class="form-group col-9">
-                <label for="password">Password</label>
-                <input type="password" class="form-control password"  id="password" name="password" required>
-                <span class="validationMsg"></span>
+    <a href="/register" class="btn btn-info form_back">Register</a>
 
-            </div>
-            <div class="button col-9">
-                <button  class="btn btn-primary  valid-submit">Login</button>
-            </div>
+    <h2 class="form_title">Login</h2>
+    <hr>
+    <form id="login_form" method="post">
+         <div class="alert alert-danger d-none" id="msg_div">
+              <span id="res_message"></span>
+         </div>
+        <div class="form-group col-12">
+            <label for="email">Email</label>
+            <input type="text" name="email" class="form-control" id="email" placeholder="Please enter email">
+            <span class="text-danger">{{ $errors->first('email') }}</span>
         </div>
+        <div class="form-group col-12">
+            <label for="password">Password</label>
+            <input type="password" name="password" class="form-control" id="password" placeholder="Please enter password">
+            <span class="text-danger">{{ $errors->first('password') }}</span>
+        </div>
+      <div class="form-group">
+       <button type="submit" id="send_form_login" class="btn btn-info">Submit</button>
+      </div>
     </form>
-</div>
+@endsection
+@section('scripts')
+<script src="{{asset('js/auth/auth.js')}}"></script>
 @endsection

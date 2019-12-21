@@ -1,9 +1,9 @@
 <?php
 
 use App\User;
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 class CreateUsersTable extends Migration
 {
@@ -15,8 +15,8 @@ class CreateUsersTable extends Migration
     public function up()
     {
         Schema::create('users', function (Blueprint $table) {
-            $table->increments('id');
-            $table->string('user_name')->nullable();
+            $table->bigIncrements('id');
+            $table->string('name')->nullable();
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
@@ -28,11 +28,10 @@ class CreateUsersTable extends Migration
             $table->string('date_year')->nullable();
             $table->string('cvc')->nullable();
             $table->string('role')->default('user');
-            $table->rememberToken();
             $table->timestamps();
         });
         User::create([
-            'user_name' => 'admin',
+            'name' => 'admin',
             'email' => 'admin@online.com',
             'password' => bcrypt('123456'),
             'role' => 'admin',

@@ -2,43 +2,131 @@
 
 namespace App\Http\Controllers;
 
+use App\Item;
+use App\Purchases;
 use App\User;
 use Auth;
-use Hash;
 use Illuminate\Http\Request;
+use Socketlabs\SocketLabsClient;
+use Socketlabs\Message\BasicMessage;
+use Socketlabs\Message\EmailAddress;
+use Socketlabs\Message\BulkMessage;
+use Socketlabs\Message\BulkRecipient;
 use Validator;
 
 class UserController extends Controller
 {
-    public function view_login()
+    public function view_home()
     {
-        return view('auth.login');
+        $data = Item::get();
+        return view('user.home')->withData($data);
     }
-    public function view_register()
+    public function view_history()
     {
-        return view('auth.register');
+        $purchases = Purchases::where('user_id', Auth::user()->id)->get();
+        $data = [];
+        foreach ($purchases as $key => $value) {
+            $items_array = explode(",", $value->item_id);
+            $items = Item::whereIn('id', $items_array)->get();
+            $total = 0;
+            foreach ($items as $key => $item) {
+                $total += $item->price;
+            }
+            $data[] = [
+                'No_procurement_bill' => $value->No_procurement_bill,
+                'total' => $total,
+                'purchases_items' => $items,
+            ];
+        }
+        return view('user.history')->withData($data);
     }
-    public function register(Request $request)
+    public function view_purchases($i)
+    {
+        $data = Purchases::where('id', $i)->with('user')->first();
+        $items_array = explode(",", $data->item_id);
+        $items = Item::whereIn('id', $items_array)->get();
+        $total = 0;
+        foreach ($items as $key => $value) {
+            $total += $value->price;
+        }
+        return view('user.purchases')->withData($data)->withItems($items)->withTotal($total);
+    }
+    public function add_purchases(Request $request)
+    {
+        $item_user = new Purchases();
+        $item_user->user_id = Auth::user()->id;
+        $item_user->item_id = implode(",", $request->ids);
+        $item_user->No_procurement_bill = mt_rand();
+        $item_user->save();
+
+        $items = Item::whereIn('id',$request->ids)->get();
+        $total = 0;
+        foreach ($items as $key => $value) {
+            $total += $value->price;
+        }
+        $serverId = 29818;
+        $injectionApiKey = 's8R7Tpf9B4Pgj6G5McZk';
+        $client = new SocketLabsClient($serverId, $injectionApiKey);
+
+        $message = new BulkMessage();
+        $message->from = new EmailAddress('Info@online-shopping.com');
+
+        $pathToHtmlFile = './resources/views/user/email/send.blade.php';
+        $message->htmlBody = file_get_contents($pathToHtmlFile);
+        $recipient1 = new BulkRecipient(Auth::user()->email, "Recipient #1");
+       
+        $message->subject = 'Online Shopping System';
+        $recipient1->addMergeData("name",Auth::user()->name );
+        $recipient1->addMergeData("email", Auth::user()->email);
+        $recipient1->addMergeData("No_procurement_bill", $item_user->No_procurement_bill);
+        $recipient1->addMergeData("created_at", $item_user->created_at);
+        $recipient1->addMergeData("total", $total);
+        $message->addToAddress($recipient1);
+        $response = $client->send($message);
+        if (!$response) {
+            return "error";
+        }
+
+        return response()->json(['msg' => 'done', 'id' => $item_user->id]);
+    }
+
+    public function check()
+    {
+        $user_info = User::where('id', Auth::user()->id)->first();
+        if ($user_info->card_name == null ||
+            $user_info->card_type == null ||
+            $user_info->date_month == null ||
+            $user_info->date_year == null ||
+            $user_info->card_number == null ||
+            $user_info->cvc == null) {
+            return response()->json(['message' => 'not_update', 'id' => $user_info->id]);
+        } else {
+            return response()->json(['message' => 'update']);
+        }
+    }
+    public function update_info_view($i)
+    {
+        $data = User::where('id', $i)->first();
+        return view('user.info')->withData($data);
+    }
+    public function update_info_process(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'user_name' => 'required|string',
-            'email' => 'required|unique:users|email',
-            'password' => 'required',
-            'card_name' => 'required|string',
+            'card_name' => 'required|string|unique:users',
             'card_type' => 'required|string',
-            'card_number' => 'required|numeric',
-            'date_month' => 'required|string',
-            'date_year' => 'required|string',
-            'cvc' => 'required|numeric',
+            'card_number' => 'required|numeric|unique:users',
+            'date_month' => 'required|string|between:1,12',
+            'date_year' => 'required',
+            'cvc' => 'required|numeric|unique:users',
         ]);
 
         if ($validator->fails()) {
-            return response()->json(['message' => $validator->errors()->all()]);
+            return response()->json(['msg' => 'Something went wrong. Please try again!']);
         }
-        $user = new User();
-        $user->user_name = $request->user_name;
-        $user->email = $request->email;
-        $user->password = Hash::make($request->password);
+        $user = User::where('id',$request->id)->first();
+        if (!$user) {
+            return response()->json(['msg' => 'Something went wrong. Please try again!']);
+        }
         $user->card_name = $request->card_name;
         $user->card_type = $request->card_type;
         $user->card_number = $request->card_number;
@@ -47,44 +135,6 @@ class UserController extends Controller
         $user->cvc = $request->cvc;
         $user->save();
 
-        return response()->json(['user' => '2', 'data' => $user]);
-    }
-
-    /**
-     * 1 or 2 refered to admin or user has been login.
-     */
-    public function login(Request $request)
-    {
-        $v = Validator::make(request()->all(), [
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
-        if ($v->fails()) {
-            session()->flash('errors', $v->messages()->toArray());
-            return back();
-        }
-
-        $email = $request->email;
-        $password = $request->password;
-
-        if (Auth::attempt(['email' => $email, 'password' => $password])) {
-            // return Auth::user()->role;
-            if (Auth::user()->role == 'admin') {
-                // return 12;
-                return redirect('/dashboard');
-            } elseif (Auth::user()->role == 'user') {
-                return redirect('/home');
-            } else {
-                return back();
-            }
-        } else {
-            return back();
-        }
-    }
-
-    public function logout()
-    {
-        Auth::logout();
-        return redirect('/');
+        return response()->json(['page' => 'home']);
     }
 }

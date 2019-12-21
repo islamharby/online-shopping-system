@@ -14,7 +14,7 @@ class Role
      * @param  \Closure  $next
      * @return mixed
      */
-    public function handle($request, Closure $next, $role)
+    public function handle($request, Closure $next,$role)
     {
         if (Auth::user()->role === $role) {
             return $next($request);
