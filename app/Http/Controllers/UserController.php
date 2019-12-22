@@ -10,8 +10,6 @@ use Illuminate\Http\Request;
 use Socketlabs\SocketLabsClient;
 use Socketlabs\Message\BasicMessage;
 use Socketlabs\Message\EmailAddress;
-use Socketlabs\Message\BulkMessage;
-use Socketlabs\Message\BulkRecipient;
 use Validator;
 
 class UserController extends Controller
@@ -64,29 +62,16 @@ class UserController extends Controller
         foreach ($items as $key => $value) {
             $total += $value->price;
         }
+
         $serverId = 29818;
         $injectionApiKey = 's8R7Tpf9B4Pgj6G5McZk';
         $client = new SocketLabsClient($serverId, $injectionApiKey);
-
-        $message = new BulkMessage();
-        $message->from = new EmailAddress('Info@online-shopping.com');
-
-        $pathToHtmlFile = './resources/views/user/email/send.blade.php';
-        $message->htmlBody = file_get_contents($pathToHtmlFile);
-        $recipient1 = new BulkRecipient(Auth::user()->email, "Recipient #1");
-       
+        $message = new BasicMessage();
         $message->subject = 'Online Shopping System';
-        $recipient1->addMergeData("name",Auth::user()->name );
-        $recipient1->addMergeData("email", Auth::user()->email);
-        $recipient1->addMergeData("No_procurement_bill", $item_user->No_procurement_bill);
-        $recipient1->addMergeData("created_at", $item_user->created_at);
-        $recipient1->addMergeData("total", $total);
-        $message->addToAddress($recipient1);
+        $message->htmlBody = '<html> <h1>Thank You For Buy From Site</h1> <hr> <h3>Invoice</h3> <br> No.procurement bill : '.$item_user->No_procurement_bill.' <h4>Total</h4>'.$total.'</html>';
+        $message->from = new EmailAddress('Info@oss.com');
+        $message->addToAddress($item_user->user['email']);
         $response = $client->send($message);
-        if (!$response) {
-            return "error";
-        }
-
         return response()->json(['msg' => 'done', 'id' => $item_user->id]);
     }
 
